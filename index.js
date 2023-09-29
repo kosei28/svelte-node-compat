@@ -1,10 +1,9 @@
-import NodeGlobalsPolyfills from '@esbuild-plugins/node-globals-polyfill';
-import NodeModulesPolyfills from '@esbuild-plugins/node-modules-polyfill';
-import * as esbuild from 'esbuild';
+import { build } from 'esbuild';
+import { polyfillNode } from 'esbuild-plugin-polyfill-node';
 import { glob } from 'glob';
 import * as path from 'node:path';
 
-export default function (adapter) {
+export function nodeCompat(adapter) {
     return {
         name: `svelte-node-compat & ${adapter.name}`,
         async adapt(builder) {
@@ -17,7 +16,7 @@ export default function (adapter) {
                 nodir: true,
             });
 
-            await esbuild.build({
+            await build({
                 conditions: ['worker', 'workerd', 'browser'],
                 entryPoints: sources,
                 outdir: build_dir,
@@ -27,10 +26,7 @@ export default function (adapter) {
                     '.wasm': 'copy',
                 },
                 external: ['cloudflare:*'],
-                plugins: [
-                    NodeGlobalsPolyfills['default']({ buffer: true }),
-                    NodeModulesPolyfills['default'](),
-                ],
+                plugins: [polyfillNode()],
             });
 
             builder.getServerDirectory = () => build_dir;
