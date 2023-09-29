@@ -1,7 +1,7 @@
 import NodeGlobalsPolyfills from '@esbuild-plugins/node-globals-polyfill';
 import NodeModulesPolyfills from '@esbuild-plugins/node-modules-polyfill';
 import * as esbuild from 'esbuild';
-import { readdirSync, statSync } from 'node:fs';
+import { glob } from 'glob';
 import * as path from 'node:path';
 
 export default function (adapter) {
@@ -13,41 +13,29 @@ export default function (adapter) {
             builder.rimraf(build_dir);
 
             const server_dir = builder.getServerDirectory();
+            const sources = await glob(path.join(server_dir, '**/*.js'), {
+                nodir: true,
+            });
 
-            await build(server_dir, build_dir, '');
+            await esbuild.build({
+                conditions: ['worker', 'workerd', 'browser'],
+                entryPoints: sources,
+                outdir: build_dir,
+                format: 'esm',
+                bundle: true,
+                loader: {
+                    '.wasm': 'copy',
+                },
+                external: ['cloudflare:*'],
+                plugins: [
+                    NodeGlobalsPolyfills['default']({ buffer: true }),
+                    NodeModulesPolyfills['default'](),
+                ],
+            });
 
             builder.getServerDirectory = () => build_dir;
 
             adapter.adapt(builder);
         },
     };
-}
-
-async function build(server_dir, out_dir, current_dir) {
-    const sources = readdirSync(path.join(server_dir, current_dir));
-    const files = sources
-        .filter((src) => src.endsWith('.js'))
-        .map((file) => path.join(server_dir, current_dir, file));
-
-    await esbuild.build({
-        conditions: ['worker', 'workerd', 'browser'],
-        entryPoints: files,
-        outdir: path.join(out_dir, current_dir),
-        format: 'esm',
-        bundle: true,
-        loader: {
-            '.wasm': 'copy',
-        },
-        external: ['cloudflare:*'],
-        plugins: [
-            NodeGlobalsPolyfills['default']({ buffer: true }),
-            NodeModulesPolyfills['default'](),
-        ],
-    });
-
-    for (const src of sources) {
-        if (statSync(path.join(server_dir, current_dir, src)).isDirectory()) {
-            await build(server_dir, out_dir, path.join(current_dir, src));
-        }
-    }
 }
