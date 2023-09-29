@@ -1,5 +1,6 @@
+import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill';
+import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfill';
 import { build } from 'esbuild';
-import { polyfillNode } from 'esbuild-plugin-polyfill-node';
 import { glob } from 'glob';
 import * as path from 'node:path';
 
@@ -26,7 +27,10 @@ export function nodeCompat(adapter) {
                     '.wasm': 'copy',
                 },
                 external: ['cloudflare:*'],
-                plugins: [polyfillNode()],
+                plugins: [
+                    NodeGlobalsPolyfillPlugin({ process: true, buffer: true }),
+                    NodeModulesPolyfillPlugin(),
+                ],
             });
 
             builder.getServerDirectory = () => build_dir;
