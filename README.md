@@ -15,7 +15,7 @@ npm install -D svelte-node-compat
 
 import adapter from '@sveltejs/adapter-cloudflare';
 import { vitePreprocess } from '@sveltejs/kit/vite';
-import nodeCompat from 'svelte-node-compat';
+import { nodeCompat } from 'svelte-node-compat';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {

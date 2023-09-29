@@ -1,6 +1,6 @@
 {
     "name": "svelte-node-compat",
-    "version": "0.0.6",
+    "version": "0.0.7",
     "description": "This is a library that makes SvelteKit's Cloudflare adapter compatible with Node.js.",
     "main": "index.js",
     "scripts": {
@@ -12,6 +12,10 @@
         "node",
         "polyfill"
     ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/kosei28/svelte-node-compat.git"
+    },
     "author": "kosei28",
     "license": "MIT",
     "dependencies": {
