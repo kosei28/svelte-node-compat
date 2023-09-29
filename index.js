@@ -30,10 +30,15 @@ async function build(server_dir, out_dir, current_dir) {
         .map((file) => path.join(server_dir, current_dir, file));
 
     await esbuild.build({
+        conditions: ['worker', 'workerd', 'browser'],
         entryPoints: files,
         outdir: path.join(out_dir, current_dir),
         format: 'esm',
         bundle: true,
+        loader: {
+            '.wasm': 'copy',
+        },
+        external: ['cloudflare:*'],
         plugins: [
             NodeGlobalsPolyfills['default']({ buffer: true }),
             NodeModulesPolyfills['default'](),
